@@ -116,6 +116,9 @@ class Audio1 {
 	}
 
 	public static function play(sound: Sound, loop: Bool = false): kha.audio1.AudioChannel {
+		#if cpp
+		var channel = new AudioChannel(loop);
+		#else
 		var channel: kha.audio2.AudioChannel = null;
 		if (Audio.samplesPerSecond != sound.sampleRate) {
 			channel = new ResamplingAudioChannel(loop, sound.sampleRate);
@@ -127,6 +130,7 @@ class Audio1 {
 			channel = new AudioChannel(loop);
 			#end
 		}
+		#end
 		channel.data = sound.uncompressedData;
 		var foundChannel = false;
 

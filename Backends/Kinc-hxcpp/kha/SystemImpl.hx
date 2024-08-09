@@ -49,6 +49,7 @@ void setGamepadRumble(int index, float left, float right);
 @:keep
 class SystemImpl {
 	public static var needs3d: Bool = false;
+    	public static var graphicsBytes:Int = 0;
 
 	public static function getMouse(num: Int): Mouse {
 		if (num != 0)
@@ -162,7 +163,7 @@ class SystemImpl {
 		mouse = new kha.input.MouseImpl();
 		pen = new kha.input.Pen();
 		gamepads = new Array<Gamepad>();
-		for (i in 0...4) {
+		for (i in 0...#if kha_linux 12 #else 4 #end) {
 			gamepads[i] = new Gamepad(i);
 			gamepads[i].connected = checkGamepadConnected(i);
 		}

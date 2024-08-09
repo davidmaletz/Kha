@@ -436,6 +436,7 @@ class SystemImpl {
 				trace("Could not initialize WebGL, falling back to <canvas>.");
 			}
 		}
+		SystemImpl.gl.pixelStorei(GL.UNPACK_ALIGNMENT, 1);
 		#end
 
 		setCanvas(canvas);

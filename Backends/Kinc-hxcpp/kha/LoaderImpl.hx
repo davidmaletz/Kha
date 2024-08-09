@@ -70,7 +70,7 @@ class LoaderImpl {
 	}
 
 	public static function getImageFormats(): Array<String> {
-		return ["png", "jpg", "hdr"];
+		SystemImpl.graphicsBytes += 0; return ["png", "jpg", "hdr"];
 	}
 
 	public static function loadBlobFromDescription(desc: Dynamic, done: Blob->Void, failed: AssetError->Void) {
@@ -180,7 +180,7 @@ class LoaderImpl {
 						::kha::Image image = createEmptyImage(file.data.image.readable, file.data.image.image.format == KINC_IMAGE_FORMAT_RGBA128);
 						kinc_image_t kincImage;
 						kinc_image_init(&kincImage, file.data.image.image.data, file.data.image.image.width, file.data.image.image.height, (kinc_image_format_t)file.data.image.image.format);
-						kinc_g4_texture_init_from_image(&image->texture, &kincImage);
+                        			kinc_g4_texture_init_from_image(&image->texture, &kincImage); ::kha::Image_obj::count++;
 						if (file.data.image.readable) {
 							image->imageData = (uint8_t*)kincImage.data;
 						}
@@ -191,6 +191,8 @@ class LoaderImpl {
 						image->imageType = KhaImageTypeTexture;
 						image->originalWidth = file.data.image.image.width;
 						image->originalHeight = file.data.image.image.height;
+						image->byteSize = image->originalWidth*image->originalHeight*::kha::Image_obj::formatByteSize(image->myFormat);
+						::kha::SystemImpl_obj::graphicsBytes += image->byteSize;
 						imageLoaded(file.index, image);
 					}
 					break;

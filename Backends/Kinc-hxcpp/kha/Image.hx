@@ -33,8 +33,11 @@ enum KhaImageType {
 	kinc_g4_texture_array_t textureArray;
 ")
 class Image implements Canvas implements Resource {
+   	@:keep public static var count:Int = 0;
 	var myFormat: TextureFormat;
 	var readable: Bool;
+	public var hasMipmaps:Bool = false;
+    	private var byteSize:Int = 0;
 
 	var graphics1: kha.graphics1.Graphics;
 	var graphics2: kha.graphics2.Graphics;
@@ -44,6 +47,7 @@ class Image implements Canvas implements Resource {
 		var image = new Image(false, false);
 		image.myFormat = RGBA32;
 		image.initVideo(cast(video, kha.kore.Video));
+		image.byteSize = image.width*image.height*formatByteSize(image.myFormat); SystemImpl.graphicsBytes += image.byteSize;
 		return image;
 	}
 
@@ -66,7 +70,8 @@ class Image implements Canvas implements Resource {
 	public static function createArray(images: Array<Image>, format: TextureFormat = null): Image {
 		var image = new Image(false);
 		image.myFormat = (format == null) ? TextureFormat.RGBA32 : format;
-		initArrayTexture(image, images);
+		image.initArrayTexture(images);
+		image.byteSize = images[0].byteSize*images.length; SystemImpl.graphicsBytes += image.byteSize;
 		return image;
 	}
 
@@ -75,18 +80,22 @@ class Image implements Canvas implements Resource {
 		for (unsigned i = 0; i < images->length; ++i) {
 			kinc_image_init(&kincImages[i], images->__get(i).StaticCast<::kha::Image>()->imageData, images->__get(i).StaticCast<::kha::Image>()->originalWidth, images->__get(i).StaticCast<::kha::Image>()->originalHeight, (kinc_image_format_t)getTextureFormat(images->__get(i).StaticCast<::kha::Image>()->myFormat));
 		}
-		kinc_g4_texture_array_init(&source->textureArray, kincImages, images->length);
+		kinc_g4_texture_array_init(&textureArray, kincImages, images->length);
 		for (unsigned i = 0; i < images->length; ++i) {
 			kinc_image_destroy(&kincImages[i]);
 		}
 		free(kincImages);
+		imageType = KhaImageTypeTextureArray;
+		originalWidth = images->__get(0).StaticCast<::kha::Image>()->originalWidth;
+		originalHeight = images->__get(0).StaticCast<::kha::Image>()->originalHeight;
 	")
-	static function initArrayTexture(source: Image, images: Array<Image>): Void {}
+	function initArrayTexture(images: Array<Image>): Void {}
 
 	public static function fromBytes(bytes: Bytes, width: Int, height: Int, format: TextureFormat = null, usage: Usage = null, readable: Bool = false): Image {
 		var image = new Image(readable);
 		image.myFormat = format;
 		image.initFromBytes(bytes.getData(), width, height, getTextureFormat(format));
+		image.byteSize = width*height*formatByteSize(format); SystemImpl.graphicsBytes += image.byteSize;
 		return image;
 	}
 
@@ -102,13 +111,14 @@ class Image implements Canvas implements Resource {
 		originalWidth = width;
 		originalHeight = height;
 	")
-	function initFromBytes(bytes: BytesData, width: Int, height: Int, format: Int): Void {}
+	function initFromBytes(bytes: BytesData, width: Int, height: Int, format: Int): Void {count++;}
 
 	public static function fromBytes3D(bytes: Bytes, width: Int, height: Int, depth: Int, format: TextureFormat = null, usage: Usage = null,
 			readable: Bool = false): Image {
 		var image = new Image(readable);
 		image.myFormat = format;
 		image.initFromBytes3D(bytes.getData(), width, height, depth, getTextureFormat(format));
+		image.byteSize = width*height*depth*formatByteSize(format); SystemImpl.graphicsBytes += image.byteSize;
 		return image;
 	}
 
@@ -124,7 +134,7 @@ class Image implements Canvas implements Resource {
 		originalWidth = width;
 		originalHeight = height;
 	")
-	function initFromBytes3D(bytes: BytesData, width: Int, height: Int, depth: Int, format: Int): Void {}
+	function initFromBytes3D(bytes: BytesData, width: Int, height: Int, depth: Int, format: Int): Void {count++;}
 
 	public static function fromEncodedBytes(bytes: Bytes, format: String, doneCallback: Image->Void, errorCallback: String->Void,
 			readable: Bool = false): Void {
@@ -132,6 +142,7 @@ class Image implements Canvas implements Resource {
 		var isFloat = format == "hdr" || format == "HDR";
 		image.myFormat = isFloat ? TextureFormat.RGBA128 : TextureFormat.RGBA32;
 		image.initFromEncodedBytes(bytes.getData(), format);
+		image.byteSize = image.width*image.height*formatByteSize(image.myFormat); SystemImpl.graphicsBytes += image.byteSize;
 		doneCallback(image);
 	}
 
@@ -152,7 +163,7 @@ class Image implements Canvas implements Resource {
 		}
 		imageType = KhaImageTypeTexture;
 	")
-	function initFromEncodedBytes(bytes: BytesData, format: String): Void {}
+	function initFromEncodedBytes(bytes: BytesData, format: String): Void {count++;}
 
 	function new(readable: Bool, ?dispose = true) {
 		this.readable = readable;
@@ -249,6 +260,7 @@ class Image implements Canvas implements Resource {
 				samplesPerPixel);
 		else
 			image.init(width, height, getTextureFormat(format));
+        	image.byteSize = width*height*formatByteSize(format); SystemImpl.graphicsBytes += image.byteSize;
 		return image;
 	}
 
@@ -257,6 +269,7 @@ class Image implements Canvas implements Resource {
 		var image = new Image(readable);
 		image.myFormat = format;
 		image.init3D(width, height, depth, getTextureFormat(format));
+		image.byteSize = width*height*depth*formatByteSize(format); SystemImpl.graphicsBytes += image.byteSize;
 		return image;
 	}
 
@@ -266,7 +279,7 @@ class Image implements Canvas implements Resource {
 		originalWidth = width;
 		originalHeight = height;
 	")
-	function initRenderTarget(width: Int, height: Int, format: Int, depthBufferBits: Int, stencilBufferBits: Int, samplesPerPixel: Int): Void {}
+	function initRenderTarget(width: Int, height: Int, format: Int, depthBufferBits: Int, stencilBufferBits: Int, samplesPerPixel: Int): Void {count++;}
 
 	@:functionCode("
 		kinc_g4_texture_init(&texture, width, height, (kinc_image_format_t)format);
@@ -274,7 +287,7 @@ class Image implements Canvas implements Resource {
 		originalWidth = width;
 		originalHeight = height;
 	")
-	function init(width: Int, height: Int, format: Int): Void {}
+	function init(width: Int, height: Int, format: Int): Void {count++;}
 
 	@:functionCode("
 		kinc_g4_texture_init3d(&texture, width, height, depth, (kinc_image_format_t)format);
@@ -282,7 +295,7 @@ class Image implements Canvas implements Resource {
 		originalWidth = width;
 		originalHeight = height;
 	")
-	function init3D(width: Int, height: Int, depth: Int, format: Int): Void {}
+	function init3D(width: Int, height: Int, depth: Int, format: Int): Void {count++;}
 
 	@:functionCode("
 		texture = *kinc_video_current_image(&video->video);
@@ -428,13 +441,13 @@ class Image implements Canvas implements Resource {
 	@:keep
 	@:functionCode("
 		if (imageType == KhaImageTypeTexture) {
-			kinc_g4_texture_destroy(&texture);
+			kinc_g4_texture_destroy(&texture); ::kha::Image_obj::count--;
 		}
 		else if (imageType == KhaImageTypeRenderTarget) {
-			kinc_g4_render_target_destroy(&renderTarget);
+			kinc_g4_render_target_destroy(&renderTarget); ::kha::Image_obj::count--;
 		}
 		else if (imageType == KhaImageTypeTextureArray) {
-			kinc_g4_texture_array_destroy(&textureArray);
+			kinc_g4_texture_array_destroy(&textureArray); ::kha::Image_obj::count--;
 		}
 		else {
 			assert(false);
@@ -445,14 +458,16 @@ class Image implements Canvas implements Resource {
 		imageData = NULL;
 		imageType = KhaImageTypeNone;
 	")
-	public function unload(): Void {}
+    	public function unload(): Void {SystemImpl.graphicsBytes -= byteSize; byteSize = 0; bytes = null;}
 
 	var bytes: Bytes = null;
 
 	@:functionCode("
-		int size = kinc_image_format_sizeof(texture.format) * originalWidth * originalHeight;
-		this->bytes = ::haxe::io::Bytes_obj::alloc(size);
-		return this->bytes;
+		if(::hx::IsNull(this->bytes)){
+		    int size = kinc_image_format_sizeof(texture.format) * originalWidth * originalHeight;
+		    if(texture.tex_depth > 1) size *= texture.tex_depth;
+		    this->bytes = ::haxe::io::Bytes_obj::alloc(size);
+		} return this->bytes;
 	")
 	public function lock(level: Int = 0): Bytes {
 		return null;
@@ -463,21 +478,25 @@ class Image implements Canvas implements Resource {
 		uint8_t *tex = kinc_g4_texture_lock(&texture);
 		int size = kinc_image_format_sizeof(texture.format);
 		int stride = kinc_g4_texture_stride(&texture);
+		int slice = kinc_g4_texture_slice(&texture);
+		int depth = texture.tex_depth; if(depth < 1) depth = 1;
+		for (int z = 0; z < depth; ++z)
 		for (int y = 0; y < texture.tex_height; ++y) {
+            		int zy = (z*originalHeight+y) * originalWidth, lineOff = z * slice + y * stride;
 			for (int x = 0; x < texture.tex_width; ++x) {
 #ifdef KORE_DIRECT3D
 				if (texture.format == KINC_IMAGE_FORMAT_RGBA32) {
 					//RBGA->BGRA
-					tex[y * stride + x * size + 0] = b[(y * originalWidth + x) * size + 2];
-					tex[y * stride + x * size + 1] = b[(y * originalWidth + x) * size + 1];
-					tex[y * stride + x * size + 2] = b[(y * originalWidth + x) * size + 0];
-					tex[y * stride + x * size + 3] = b[(y * originalWidth + x) * size + 3];
+				        tex[lineOff + x * size + 0] = b[(zy + x) * size + 2];
+				        tex[lineOff + x * size + 1] = b[(zy + x) * size + 1];
+				        tex[lineOff + x * size + 2] = b[(zy + x) * size + 0];
+				        tex[lineOff + x * size + 3] = b[(zy + x) * size + 3];
 				}
 				else
 #endif
 				{
 					for (int i = 0; i < size; ++i) {
-						tex[y * stride + x * size + i] = b[(y * originalWidth + x) * size + i];
+			                        tex[lineOff + x * size + i] = b[(zy + x) * size + i];
 					}
 				}
 			}
@@ -485,7 +504,6 @@ class Image implements Canvas implements Resource {
 		kinc_g4_texture_unlock(&texture);
 	")
 	public function unlock(): Void {
-		bytes = null;
 	}
 
 	@:ifFeature("kha.Image.getPixelsInternal")
@@ -526,11 +544,11 @@ class Image implements Canvas implements Resource {
 	}
 
 	public function generateMipmaps(levels: Int): Void {
-		untyped __cpp__("if (imageType == KhaImageTypeTexture) kinc_g4_texture_generate_mipmaps(&texture, levels); else if (imageType == KhaImageTypeRenderTarget) kinc_g4_render_target_generate_mipmaps(&renderTarget, levels)");
+		hasMipmaps = true; untyped __cpp__("if (imageType == KhaImageTypeTexture) kinc_g4_texture_generate_mipmaps(&texture, levels); else if (imageType == KhaImageTypeRenderTarget) kinc_g4_render_target_generate_mipmaps(&renderTarget, levels)");
 	}
 
 	public function setMipmaps(mipmaps: Array<Image>): Void {
-		for (i in 0...mipmaps.length) {
+		hasMipmaps = true; for (i in 0...mipmaps.length) {
 			var khaImage = mipmaps[i];
 			var level = i + 1;
 			var format = getTextureFormat(this.format);

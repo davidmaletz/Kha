@@ -11,7 +11,7 @@ class PipelineStateBase {
 
 		cullMode = CullMode.None;
 
-		depthWrite = false;
+		depthWrite = false; depthClip = true;
 		depthMode = CompareMode.Always;
 
 		stencilFrontMode = CompareMode.Always;
@@ -67,7 +67,7 @@ class PipelineStateBase {
 
 	public var cullMode: CullMode;
 
-	public var depthWrite: Bool;
+	public var depthWrite: Bool; public var depthClip: Bool;
 	public var depthMode: CompareMode;
 
 	public var stencilFrontMode: CompareMode;

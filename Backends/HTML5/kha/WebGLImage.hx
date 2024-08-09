@@ -15,6 +15,7 @@ import kha.graphics4.DepthStencilFormat;
 import kha.js.graphics4.Graphics;
 
 class WebGLImage extends Image {
+    public static var count:Int = 0;
 	public var image: Dynamic;
 	public var video: VideoElement;
 
@@ -204,7 +205,7 @@ class WebGLImage extends Image {
 	public function createTexture(): Void {
 		if (SystemImpl.gl == null)
 			return;
-		texture = SystemImpl.gl.createTexture();
+		texture = SystemImpl.gl.createTexture(); count++;
 		// texture.image = image;
 		SystemImpl.gl.bindTexture(GL.TEXTURE_2D, texture);
 		// Sys.gl.pixelStorei(Sys.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -448,7 +449,7 @@ class WebGLImage extends Image {
 		image = null;
 
 		if (SystemImpl.gl != null) {
-			texture = SystemImpl.gl.createTexture();
+			if(texture == null){texture = SystemImpl.gl.createTexture(); count++;}
 			// texture.image = image;
 			SystemImpl.gl.bindTexture(GL.TEXTURE_2D, texture);
 			// Sys.gl.pixelStorei(Sys.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -538,9 +539,9 @@ class WebGLImage extends Image {
 	}
 
 	override public function unload(): Void {
-		if (texture != null)
-			SystemImpl.gl.deleteTexture(texture);
-		if (depthTexture != null)
+		if (texture != null){
+			SystemImpl.gl.deleteTexture(texture); count--;
+		} if (depthTexture != null)
 			SystemImpl.gl.deleteTexture(depthTexture);
 		if (frameBuffer != null)
 			SystemImpl.gl.deleteFramebuffer(frameBuffer);

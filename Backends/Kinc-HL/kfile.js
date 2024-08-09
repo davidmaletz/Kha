@@ -16,6 +16,7 @@ project.addDefine('KOREC');
 project.addDefine('ROTATE90');
 project.addDefine('LIBHL_STATIC');
 project.addDefine('PCRE2_CODE_UNIT_WIDTH=8');
+project.addDefine('SUPPORT_UNICODE');
 project.addDefine('HAVE_CONFIG_H');
 project.cStd = 'c11';
 

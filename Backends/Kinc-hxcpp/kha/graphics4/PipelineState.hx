@@ -145,7 +145,7 @@ class PipelineState extends PipelineStateBase {
 		setStates(cullMode, depthMode, stencilFrontMode, stencilFrontBothPass, stencilFrontDepthFail, stencilFrontFail, stencilBackMode, stencilBackBothPass,
 			stencilBackDepthFail, stencilBackFail, depthWrite, stencilReferenceValue, getBlendFactor(blendSource), getBlendFactor(blendDestination),
 			getBlendOperation(blendOperation), getBlendFactor(alphaBlendSource), getBlendFactor(alphaBlendDestination),
-			getBlendOperation(alphaBlendOperation), getDepthBufferBits(depthStencilAttachment), getStencilBufferBits(depthStencilAttachment));
+			getBlendOperation(alphaBlendOperation), getDepthBufferBits(depthStencilAttachment), getStencilBufferBits(depthStencilAttachment), depthClip);
 		linkWithStructures2(inputLayout.length > 0 ? inputLayout[0] : null, inputLayout.length > 1 ? inputLayout[1] : null,
 			inputLayout.length > 2 ? inputLayout[2] : null, inputLayout.length > 3 ? inputLayout[3] : null, inputLayout.length);
 	}
@@ -226,7 +226,7 @@ class PipelineState extends PipelineStateBase {
 		}
 
 		pipeline.depth_mode = convertCompareMode(depthMode);
-		pipeline.depth_write = depthWrite;
+		pipeline.depth_write = depthWrite; pipeline.depth_clip = depthClip;
 
 		pipeline.stencil_front_mode = convertCompareMode(stencilFrontMode);
 		pipeline.stencil_front_both_pass = convertStencilAction(stencilFrontBothPass);
@@ -267,7 +267,7 @@ class PipelineState extends PipelineStateBase {
 	function setStates(cullMode: Int, depthMode: Int, stencilFrontMode: Int, stencilFrontBothPass: Int, stencilFrontDepthFail: Int, stencilFrontFail: Int,
 		stencilBackMode: Int, stencilBackBothPass: Int, stencilBackDepthFail: Int, stencilBackFail: Int, depthWrite: Bool, stencilReferenceValue: Int,
 		blendSource: Int, blendDestination: Int, blendOperation: Int, alphaBlendSource: Int, alphaBlendDestination: Int, alphaBlendOperation: Int,
-		depthAttachmentBits: Int, stencilAttachmentBits: Int): Void {}
+		depthAttachmentBits: Int, stencilAttachmentBits: Int, depthClip:Bool): Void {}
 
 	@:functionCode("kinc_g4_set_pipeline(&pipeline);")
 	function set2(): Void {}

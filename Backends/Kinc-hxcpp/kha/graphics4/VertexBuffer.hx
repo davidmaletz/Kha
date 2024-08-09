@@ -12,15 +12,16 @@ import kha.graphics4.VertexStructure;
 ")
 @:headerClassCode("kinc_g4_vertex_buffer_t buffer;")
 class VertexBuffer {
-	var data: Float32Array;
+	var data: Float32Array; private var byteSize:Int;
 	@:keep var dataInt16: Int16Array;
 
 	public function new(vertexCount: Int, structure: VertexStructure, usage: Usage, instanceDataStepRate: Int = 0, canRead: Bool = false) {
-		init(vertexCount, structure, usage, instanceDataStepRate);
+		byteSize = vertexCount*structure.byteSize(); init(vertexCount, structure, usage, instanceDataStepRate);
 		data = new Float32Array(0);
 	}
 
 	public function delete(): Void {
+	        if(byteSize == 0) trace("Warning: VBO double delete!"); SystemImpl.graphicsBytes -= byteSize; byteSize = 0;
 		untyped __cpp__("kinc_g4_vertex_buffer_destroy(&buffer);");
 	}
 
@@ -33,7 +34,7 @@ class VertexBuffer {
 		}
 		kinc_g4_vertex_buffer_init(&buffer, vertexCount, &structure2, (kinc_g4_usage_t)usage, instanceDataStepRate);
 	")
-	function init(vertexCount: Int, structure: VertexStructure, usage: Int, instanceDataStepRate: Int) {}
+	function init(vertexCount: Int, structure: VertexStructure, usage: Int, instanceDataStepRate: Int) {SystemImpl.graphicsBytes += byteSize;}
 
 	@:functionCode("
 		data->self.data = (uint8_t*)kinc_g4_vertex_buffer_lock(&buffer, start, count);

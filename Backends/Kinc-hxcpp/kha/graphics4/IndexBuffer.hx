@@ -14,10 +14,11 @@ class IndexBuffer {
 		myCount = indexCount;
 		data = new Uint32Array(0);
 		untyped __cpp__("kinc_g4_index_buffer_init(&buffer, indexCount, KINC_G4_INDEX_BUFFER_FORMAT_32BIT, (kinc_g4_usage_t)usage);");
+		SystemImpl.graphicsBytes += byteSize();
 	}
-
+    	public inline function byteSize():Int {return myCount*4;}
 	public function delete(): Void {
-		untyped __cpp__("kinc_g4_index_buffer_destroy(&buffer);");
+		SystemImpl.graphicsBytes -= byteSize(); untyped __cpp__("kinc_g4_index_buffer_destroy(&buffer);");
 	}
 
 	@:functionCode("

@@ -20,7 +20,9 @@ class ResamplingAudioChannel extends AudioChannel {
 
 		var requestedSamplesIndex = 0;
 		while (requestedSamplesIndex < requestedLength) {
-			for (i in 0...min(sampleLength(sampleRate) - myPosition, requestedLength - requestedSamplesIndex)) {
+			var ct = min(sampleLength(sampleRate) - myPosition, requestedLength - requestedSamplesIndex);
+			if(ct == 0) break;
+			for (i in 0...ct) {
 				requestedSamples[requestedSamplesIndex++] = sample(myPosition++, sampleRate);
 			}
 

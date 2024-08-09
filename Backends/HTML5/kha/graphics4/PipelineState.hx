@@ -52,7 +52,7 @@ class PipelineState extends PipelineStateBase {
 	}
 
 	public function set(): Void {
-		SystemImpl.gl.useProgram(program);
+		SystemImpl.gl.useProgram(program); __currentProgram = program;
 		for (index in 0...textureValues.length)
 			SystemImpl.gl.uniform1i(textureValues[index], index);
 		SystemImpl.gl.colorMask(colorWriteMaskRed, colorWriteMaskGreen, colorWriteMaskBlue, colorWriteMaskAlpha);
@@ -108,7 +108,7 @@ class PipelineState extends PipelineStateBase {
 		}
 		return new kha.js.graphics4.ConstantLocation(location, type);
 	}
-
+	private static var __currentProgram:Dynamic = null;
 	public function getTextureUnit(name: String): kha.graphics4.TextureUnit {
 		var index = findTexture(name);
 		if (index < 0) {
@@ -119,6 +119,7 @@ class PipelineState extends PipelineStateBase {
 			index = textures.length;
 			textureValues.push(location);
 			textures.push(name);
+			if(__currentProgram == program) SystemImpl.gl.uniform1i(location, index);
 		}
 		return new kha.js.graphics4.TextureUnit(index);
 	}

@@ -333,7 +333,7 @@ sure both macros are undefined; an emulation function will then be used. */
 /* #undef SUPPORT_PCRE2GREP_JIT */
 
 /* Define to any value to enable the 16 bit PCRE2 library. */
-#define SUPPORT_PCRE2_16 /**/
+#undef SUPPORT_PCRE2_16 /**/
 
 /* Define to any value to enable the 32 bit PCRE2 library. */
 #undef SUPPORT_PCRE2_32 /**/
